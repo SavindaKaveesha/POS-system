@@ -32,6 +32,15 @@ public class Pos_system extends javax.swing.JFrame {
     Connection con; 
     PreparedStatement pst;
     ResultSet rs;
+    
+    public void balance(){
+        int total = Integer.parseInt(subTotalBox.getText());
+        int pay = Integer.parseInt(payBox.getText());
+        
+        int balance =  pay - total;
+        
+        balanceBox.setText(String.valueOf(balance));
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -61,6 +70,7 @@ public class Pos_system extends javax.swing.JFrame {
         subTotalBox = new javax.swing.JTextField();
         jLabel8 = new javax.swing.JLabel();
         payBox = new javax.swing.JTextField();
+        calculate = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable = new javax.swing.JTable();
         jScrollPane2 = new javax.swing.JScrollPane();
@@ -158,7 +168,15 @@ public class Pos_system extends javax.swing.JFrame {
         jPanel2.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 140, -1, -1));
         jPanel2.add(payBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 100, 110, -1));
 
-        getContentPane().add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(830, 20, 360, 210));
+        calculate.setText("Calculate Bill");
+        calculate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                calculateActionPerformed(evt);
+            }
+        });
+        jPanel2.add(calculate, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 200, -1, -1));
+
+        getContentPane().add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(830, 20, 360, 230));
 
         jTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -184,7 +202,7 @@ public class Pos_system extends javax.swing.JFrame {
         jTextArea1.setRows(5);
         jScrollPane2.setViewportView(jTextArea1);
 
-        getContentPane().add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(830, 240, 340, 370));
+        getContentPane().add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(830, 260, 340, 370));
 
         pack();
         setLocationRelativeTo(null);
@@ -279,6 +297,12 @@ public class Pos_system extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_TotalBoxActionPerformed
 
+    private void calculateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_calculateActionPerformed
+       
+        balance();
+        
+    }//GEN-LAST:event_calculateActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -318,6 +342,7 @@ public class Pos_system extends javax.swing.JFrame {
     private javax.swing.JTextField TotalBox;
     private javax.swing.JButton addBtn;
     private javax.swing.JTextField balanceBox;
+    private javax.swing.JButton calculate;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
