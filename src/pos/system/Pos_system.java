@@ -5,6 +5,17 @@
  */
 package pos.system;
 
+import com.mysql.jdbc.Connection;
+import com.mysql.jdbc.PreparedStatement;
+import java.awt.event.KeyEvent;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author savinda
@@ -17,6 +28,10 @@ public class Pos_system extends javax.swing.JFrame {
     public Pos_system() {
         initComponents();
     }
+    
+    Connection con; 
+    PreparedStatement pst;
+    ResultSet rs;
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -33,21 +48,21 @@ public class Pos_system extends javax.swing.JFrame {
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        jTextField2 = new javax.swing.JTextField();
-        jTextField3 = new javax.swing.JTextField();
-        jTextField5 = new javax.swing.JTextField();
-        jSpinner1 = new javax.swing.JSpinner();
-        jButton1 = new javax.swing.JButton();
+        TotalBox = new javax.swing.JTextField();
+        productCodeBox = new javax.swing.JTextField();
+        productNameBox = new javax.swing.JTextField();
+        priceBox = new javax.swing.JTextField();
+        qtyBox = new javax.swing.JSpinner();
+        addBtn = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jLabel6 = new javax.swing.JLabel();
-        jTextField4 = new javax.swing.JTextField();
+        balanceBox = new javax.swing.JTextField();
         jLabel7 = new javax.swing.JLabel();
-        jTextField6 = new javax.swing.JTextField();
+        subTotalBox = new javax.swing.JTextField();
         jLabel8 = new javax.swing.JLabel();
-        jTextField7 = new javax.swing.JTextField();
+        payBox = new javax.swing.JTextField();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        jTable = new javax.swing.JTable();
         jScrollPane2 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
 
@@ -84,26 +99,42 @@ public class Pos_system extends javax.swing.JFrame {
         jLabel5.setText("Price");
         jPanel1.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(450, 30, 70, 20));
 
-        jTextField1.setText("jTextField1");
-        jPanel1.add(jTextField1, new org.netbeans.lib.awtextra.AbsoluteConstraints(590, 60, 110, 30));
-
-        jTextField2.setText("jTextField1");
-        jTextField2.addActionListener(new java.awt.event.ActionListener() {
+        TotalBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField2ActionPerformed(evt);
+                TotalBoxActionPerformed(evt);
             }
         });
-        jPanel1.add(jTextField2, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 60, 110, 30));
+        jPanel1.add(TotalBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(590, 60, 110, 30));
 
-        jTextField3.setText("jTextField1");
-        jPanel1.add(jTextField3, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 60, 110, 30));
+        productCodeBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                productCodeBoxActionPerformed(evt);
+            }
+        });
+        productCodeBox.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                productCodeBoxKeyPressed(evt);
+            }
+        });
+        jPanel1.add(productCodeBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 60, 110, 30));
+        jPanel1.add(productNameBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 60, 110, 30));
+        jPanel1.add(priceBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(450, 60, 110, 30));
 
-        jTextField5.setText("jTextField1");
-        jPanel1.add(jTextField5, new org.netbeans.lib.awtextra.AbsoluteConstraints(450, 60, 110, 30));
-        jPanel1.add(jSpinner1, new org.netbeans.lib.awtextra.AbsoluteConstraints(330, 60, 40, 30));
+        qtyBox.setRequestFocusEnabled(false);
+        qtyBox.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                qtyBoxStateChanged(evt);
+            }
+        });
+        jPanel1.add(qtyBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(330, 60, 40, 30));
 
-        jButton1.setText("Add");
-        jPanel1.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(600, 100, -1, -1));
+        addBtn.setText("Add");
+        addBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addBtnActionPerformed(evt);
+            }
+        });
+        jPanel1.add(addBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(600, 100, -1, -1));
 
         getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(28, 13, 780, 200));
 
@@ -112,32 +143,40 @@ public class Pos_system extends javax.swing.JFrame {
         jLabel6.setText("Total");
         jPanel2.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(138, 13, -1, -1));
 
-        jTextField4.setText("jTextField4");
-        jPanel2.add(jTextField4, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 160, -1, -1));
+        balanceBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                balanceBoxActionPerformed(evt);
+            }
+        });
+        jPanel2.add(balanceBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 160, 110, -1));
 
         jLabel7.setText("pay");
         jPanel2.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 80, -1, -1));
-
-        jTextField6.setText("jTextField4");
-        jPanel2.add(jTextField6, new org.netbeans.lib.awtextra.AbsoluteConstraints(122, 36, -1, -1));
+        jPanel2.add(subTotalBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(102, 36, 110, -1));
 
         jLabel8.setText("balance");
         jPanel2.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 140, -1, -1));
-
-        jTextField7.setText("jTextField4");
-        jPanel2.add(jTextField7, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 100, -1, -1));
+        jPanel2.add(payBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 100, 110, -1));
 
         getContentPane().add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(830, 20, 360, 210));
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        jTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
             new String [] {
                 "Product code", "product Name", "Qty", "Price", "Total"
             }
-        ));
-        jScrollPane1.setViewportView(jTable1);
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.Integer.class, java.lang.Integer.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+        });
+        jScrollPane1.setViewportView(jTable);
 
         getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 240, 770, 390));
 
@@ -151,9 +190,94 @@ public class Pos_system extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jTextField2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField2ActionPerformed
+    private void productCodeBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_productCodeBoxActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField2ActionPerformed
+    }//GEN-LAST:event_productCodeBoxActionPerformed
+
+    private void balanceBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_balanceBoxActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_balanceBoxActionPerformed
+
+    private void productCodeBoxKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_productCodeBoxKeyPressed
+        
+        if(evt.getKeyCode() == KeyEvent.VK_ENTER){
+            String pCode = productCodeBox.getText();
+            
+            try {
+                Class.forName("com.mysql.jdbc.Driver");
+                con = (Connection) DriverManager.getConnection("jdbc:mysql://localhost:3306/test1","root","");
+                pst = (PreparedStatement) con.prepareStatement("select * from parts where part_no = ?");
+                
+                pst.setString(1, pCode);
+                
+                rs = pst.executeQuery();
+                
+                //if product id not available
+                if(rs.next() == false){
+                    JOptionPane.showMessageDialog(this, "product code not found");
+                }else{
+                    String pname = rs.getString("description");
+                    String price = rs.getString("price");
+                    
+                    productNameBox.setText(pname.trim());
+                    priceBox.setText(price.trim());
+                }
+                
+                        } catch (ClassNotFoundException ex) {
+                Logger.getLogger(Pos_system.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (SQLException ex) {
+                Logger.getLogger(Pos_system.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+    }//GEN-LAST:event_productCodeBoxKeyPressed
+
+    private void qtyBoxStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_qtyBoxStateChanged
+        
+        int qty = Integer.parseInt(qtyBox.getValue().toString());
+        int price = Integer.parseInt(priceBox.getText());
+        
+        int total = qty * price;
+        
+        TotalBox.setText(String.valueOf(total));
+        
+    }//GEN-LAST:event_qtyBoxStateChanged
+
+    private void addBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addBtnActionPerformed
+        
+        DefaultTableModel model = new DefaultTableModel();
+        
+        model = (DefaultTableModel)jTable.getModel();
+        
+        model. addRow(new Object[]
+        {
+            productCodeBox.getText(),
+            productNameBox.getText(),
+            qtyBox.getValue().toString(),
+            priceBox.getText(),
+            TotalBox.getText(),
+        } 
+                );
+        
+        int sum =  0 ;
+        
+        for (int i = 0; i<jTable.getRowCount(); ++i){
+            sum = sum + Integer.parseInt(jTable.getValueAt(i, 4).toString());
+        }
+        
+        subTotalBox.setText(Integer.toString(sum));
+        
+            productCodeBox.setText("");
+            productNameBox.setText("");
+            qtyBox.setValue(0);
+            priceBox.setText("");
+            TotalBox.setText("");
+            
+    }//GEN-LAST:event_addBtnActionPerformed
+
+    private void TotalBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TotalBoxActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_TotalBoxActionPerformed
 
     /**
      * @param args the command line arguments
@@ -191,7 +315,9 @@ public class Pos_system extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
+    private javax.swing.JTextField TotalBox;
+    private javax.swing.JButton addBtn;
+    private javax.swing.JTextField balanceBox;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -204,15 +330,13 @@ public class Pos_system extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JSpinner jSpinner1;
-    private javax.swing.JTable jTable1;
+    private javax.swing.JTable jTable;
     private javax.swing.JTextArea jTextArea1;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField3;
-    private javax.swing.JTextField jTextField4;
-    private javax.swing.JTextField jTextField5;
-    private javax.swing.JTextField jTextField6;
-    private javax.swing.JTextField jTextField7;
+    private javax.swing.JTextField payBox;
+    private javax.swing.JTextField priceBox;
+    private javax.swing.JTextField productCodeBox;
+    private javax.swing.JTextField productNameBox;
+    private javax.swing.JSpinner qtyBox;
+    private javax.swing.JTextField subTotalBox;
     // End of variables declaration//GEN-END:variables
 }
