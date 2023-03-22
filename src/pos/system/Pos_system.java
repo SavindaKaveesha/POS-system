@@ -8,6 +8,7 @@ package pos.system;
 import com.mysql.jdbc.Connection;
 import com.mysql.jdbc.PreparedStatement;
 import java.awt.event.KeyEvent;
+import java.awt.print.PrinterException;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -33,6 +34,7 @@ public class Pos_system extends javax.swing.JFrame {
     PreparedStatement pst;
     ResultSet rs;
     
+    //balance calculate
     public void balance(){
         int total = Integer.parseInt(subTotalBox.getText());
         int pay = Integer.parseInt(payBox.getText());
@@ -40,6 +42,45 @@ public class Pos_system extends javax.swing.JFrame {
         int balance =  pay - total;
         
         balanceBox.setText(String.valueOf(balance));
+    }
+    
+    //bill display
+    public void bill(){
+        
+        String total = subTotalBox.getText();
+        String pay = payBox.getText();
+        String balance = balanceBox.getText();
+        
+        DefaultTableModel model = new DefaultTableModel();
+        
+        model = (DefaultTableModel)jTable.getModel();
+        
+        billArea.setText(billArea.getText() + "*****************************\n");
+        billArea.setText(billArea.getText() + "*          INVOICE          *\n");
+        billArea.setText(billArea.getText() + "*****************************\n");
+        
+        billArea.setText(billArea.getText() + "Product\t\t"+ "Price\t" + "Amount" + "\n");
+        billArea.setText(billArea.getText() + "\n");
+        
+        //get and print details in table
+        for(int i =0; i< model.getRowCount(); ++i){
+            String pname = (String)model.getValueAt(i,1);
+            String price = (String)model.getValueAt(i,3);
+            String amount = (String)model.getValueAt(i,4);
+            
+            billArea.setText(billArea.getText() + pname + "\t" + price + "\t"+ amount + "\n");
+        }
+        
+        billArea.setText(billArea.getText() + "\n");
+        billArea.setText(billArea.getText() + "Sub Total :"+ total+ ".00" + "\n");
+        billArea.setText(billArea.getText() + "paid :"+ pay+ ".00" + "\n");
+        billArea.setText(billArea.getText() + "Balance :"+ balance+ ".00" + "\n");
+        billArea.setText(billArea.getText() + "\n");
+        
+        billArea.setText(billArea.getText() + "\tThank You!");
+        
+        
+        
     }
 
     /**
@@ -74,7 +115,8 @@ public class Pos_system extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable = new javax.swing.JTable();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
+        billArea = new javax.swing.JTextArea();
+        jButton1 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -107,15 +149,17 @@ public class Pos_system extends javax.swing.JFrame {
         jLabel5.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
         jLabel5.setForeground(new java.awt.Color(255, 255, 255));
         jLabel5.setText("Price");
-        jPanel1.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(450, 30, 70, 20));
+        jPanel1.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(430, 30, 70, 20));
 
+        TotalBox.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         TotalBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 TotalBoxActionPerformed(evt);
             }
         });
-        jPanel1.add(TotalBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(590, 60, 110, 30));
+        jPanel1.add(TotalBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(590, 60, 130, 30));
 
+        productCodeBox.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         productCodeBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 productCodeBoxActionPerformed(evt);
@@ -126,10 +170,15 @@ public class Pos_system extends javax.swing.JFrame {
                 productCodeBoxKeyPressed(evt);
             }
         });
-        jPanel1.add(productCodeBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 60, 110, 30));
-        jPanel1.add(productNameBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 60, 110, 30));
-        jPanel1.add(priceBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(450, 60, 110, 30));
+        jPanel1.add(productCodeBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 60, 120, 30));
 
+        productNameBox.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jPanel1.add(productNameBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(160, 60, 130, 30));
+
+        priceBox.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jPanel1.add(priceBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(430, 60, 130, 30));
+
+        qtyBox.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         qtyBox.setRequestFocusEnabled(false);
         qtyBox.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
@@ -138,46 +187,57 @@ public class Pos_system extends javax.swing.JFrame {
         });
         jPanel1.add(qtyBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(330, 60, 40, 30));
 
+        addBtn.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
         addBtn.setText("Add");
         addBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 addBtnActionPerformed(evt);
             }
         });
-        jPanel1.add(addBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(600, 100, -1, -1));
+        jPanel1.add(addBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(310, 130, 80, 40));
 
         getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(28, 13, 780, 200));
 
         jPanel2.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
+        jLabel6.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         jLabel6.setText("Total");
-        jPanel2.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(138, 13, -1, -1));
+        jPanel2.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 10, -1, -1));
 
+        balanceBox.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         balanceBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 balanceBoxActionPerformed(evt);
             }
         });
-        jPanel2.add(balanceBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 160, 110, -1));
+        jPanel2.add(balanceBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 160, 130, -1));
 
+        jLabel7.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         jLabel7.setText("pay");
-        jPanel2.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 80, -1, -1));
-        jPanel2.add(subTotalBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(102, 36, 110, -1));
+        jPanel2.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 70, -1, -1));
 
+        subTotalBox.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jPanel2.add(subTotalBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(102, 36, 130, -1));
+
+        jLabel8.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         jLabel8.setText("balance");
-        jPanel2.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 140, -1, -1));
-        jPanel2.add(payBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 100, 110, -1));
+        jPanel2.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 140, -1, -1));
 
+        payBox.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jPanel2.add(payBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 100, 130, -1));
+
+        calculate.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
         calculate.setText("Calculate Bill");
         calculate.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 calculateActionPerformed(evt);
             }
         });
-        jPanel2.add(calculate, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 200, -1, -1));
+        jPanel2.add(calculate, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 200, -1, -1));
 
         getContentPane().add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(830, 20, 360, 230));
 
+        jTable.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         jTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
@@ -196,13 +256,23 @@ public class Pos_system extends javax.swing.JFrame {
         });
         jScrollPane1.setViewportView(jTable);
 
-        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 240, 770, 390));
+        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 240, 770, 460));
 
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jScrollPane2.setViewportView(jTextArea1);
+        billArea.setColumns(20);
+        billArea.setFont(new java.awt.Font("Monospaced", 0, 18)); // NOI18N
+        billArea.setRows(5);
+        jScrollPane2.setViewportView(billArea);
 
         getContentPane().add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(830, 260, 340, 370));
+
+        jButton1.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
+        jButton1.setText("Print");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+        getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(970, 650, 90, 40));
 
         pack();
         setLocationRelativeTo(null);
@@ -300,8 +370,17 @@ public class Pos_system extends javax.swing.JFrame {
     private void calculateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_calculateActionPerformed
        
         balance();
+        bill();
         
     }//GEN-LAST:event_calculateActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        try {
+            billArea.print();
+        } catch (PrinterException ex) {
+            Logger.getLogger(Pos_system.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -342,7 +421,9 @@ public class Pos_system extends javax.swing.JFrame {
     private javax.swing.JTextField TotalBox;
     private javax.swing.JButton addBtn;
     private javax.swing.JTextField balanceBox;
+    private javax.swing.JTextArea billArea;
     private javax.swing.JButton calculate;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -356,7 +437,6 @@ public class Pos_system extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTable jTable;
-    private javax.swing.JTextArea jTextArea1;
     private javax.swing.JTextField payBox;
     private javax.swing.JTextField priceBox;
     private javax.swing.JTextField productCodeBox;
