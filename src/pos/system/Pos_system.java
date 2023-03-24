@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import net.proteanit.sql.DbUtils;
 
 /**
  *
@@ -28,17 +29,29 @@ public class Pos_system extends javax.swing.JFrame {
      */
     public Pos_system() {
         initComponents();
+        con = DBconnect.connect();
+        tableLoad();
     }
     
     Connection con; 
     PreparedStatement pst;
     ResultSet rs;
+    int total;
+    
+    public void tableLoad(){
+        try{
+            String sql = "SELECT part_no, description, qty,price FROM parts";
+            pst = (PreparedStatement) con.prepareStatement(sql);
+            rs = pst.executeQuery();
+            jTableAllItems.setModel(DbUtils.resultSetToTableModel(rs));
+        }catch(Exception e){
+            JOptionPane.showMessageDialog(null, e);
+        }
+    }
     
     //balance calculate
-    public void balance(){
-        int total = Integer.parseInt(subTotalBox.getText());
-        int pay = Integer.parseInt(payBox.getText());
-        
+    public void balance(int pay, int total){
+                
         int balance =  pay - total;
         
         balanceBox.setText(String.valueOf(balance));
@@ -78,8 +91,97 @@ public class Pos_system extends javax.swing.JFrame {
         billArea.setText(billArea.getText() + "\n");
         
         billArea.setText(billArea.getText() + "\tThank You!");
+         
+    }
+    
+    public void selectItem(){
+        String pCode = productCodeBox.getText();
+            try {
+                pst = (PreparedStatement) con.prepareStatement("select * from parts where part_no = ?");
+                
+                pst.setString(1, pCode);
+                
+                rs = pst.executeQuery();
+                
+                //if product id not available
+                if(rs.next() == false){
+                    JOptionPane.showMessageDialog(this, "product code not found");
+                }else{
+                    String pname = rs.getString("description");
+                    String price = rs.getString("price");
+                    
+                    productNameBox.setText(pname.trim());
+                    priceBox.setText(price.trim());
+                }
+                
+                        } catch (Exception ex) {
+                JOptionPane.showMessageDialog(rootPane, ex);
+            }
         
+    }
+    
+    //when select how many items buy calculate total price for that particular item
+    public void calculateTotalOfItem(){
+        int qty = Integer.parseInt(qtyBox.getValue().toString());
+        int price = Integer.parseInt(priceBox.getText());
         
+        int total = qty * price;
+        
+        TotalBox.setText(String.valueOf(total));
+    }
+    
+    //adding selected item to table
+    public void itemAddToTable(){
+        
+        DefaultTableModel model = new DefaultTableModel();
+        
+        model = (DefaultTableModel)jTable.getModel();
+        
+        model. addRow(new Object[]
+        {
+            productCodeBox.getText(),
+            productNameBox.getText(),
+            qtyBox.getValue().toString(),
+            priceBox.getText(),
+            TotalBox.getText(),
+        } 
+                );
+        
+        int sum =  0 ;
+        
+        for (int i = 0; i<jTable.getRowCount(); ++i){
+            sum = sum + Integer.parseInt(jTable.getValueAt(i, 4).toString());
+        }
+        
+        subTotalBox.setText(Integer.toString(sum));
+        
+        clearAllCells();   
+    }
+    
+    public void clearAllCells(){
+        productCodeBox.setText("");
+            productNameBox.setText("");
+            qtyBox.setValue(0);
+            priceBox.setText("");
+            TotalBox.setText("");
+            payBox.setText("");
+            balanceBox.setText("");
+    }
+    
+    //clear all parts of interface
+    public void clear(){
+        
+        clearAllCells();
+        
+        //clear table data
+        DefaultTableModel model = new DefaultTableModel();
+        model = (DefaultTableModel)jTable.getModel();
+        model.setRowCount(0);
+        
+        billArea.setText(" ");
+        subTotalBox.setText("");
+        
+        total = 0;
         
     }
 
@@ -104,6 +206,7 @@ public class Pos_system extends javax.swing.JFrame {
         priceBox = new javax.swing.JTextField();
         qtyBox = new javax.swing.JSpinner();
         addBtn = new javax.swing.JButton();
+        clearBtn = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jLabel6 = new javax.swing.JLabel();
         balanceBox = new javax.swing.JTextField();
@@ -117,11 +220,13 @@ public class Pos_system extends javax.swing.JFrame {
         jScrollPane2 = new javax.swing.JScrollPane();
         billArea = new javax.swing.JTextArea();
         jButton1 = new javax.swing.JButton();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        jTableAllItems = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        jPanel1.setBackground(new java.awt.Color(51, 51, 255));
+        jPanel1.setBackground(new java.awt.Color(153, 153, 153));
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Sales", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 14), new java.awt.Color(255, 255, 255))); // NOI18N
         jPanel1.setForeground(new java.awt.Color(51, 51, 255));
         jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -196,6 +301,15 @@ public class Pos_system extends javax.swing.JFrame {
         });
         jPanel1.add(addBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(310, 130, 80, 40));
 
+        clearBtn.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
+        clearBtn.setText("Clear All");
+        clearBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                clearBtnActionPerformed(evt);
+            }
+        });
+        jPanel1.add(clearBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(609, 135, 120, 40));
+
         getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(28, 13, 780, 200));
 
         jPanel2.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -205,6 +319,7 @@ public class Pos_system extends javax.swing.JFrame {
         jPanel2.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 10, -1, -1));
 
         balanceBox.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        balanceBox.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
         balanceBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 balanceBoxActionPerformed(evt);
@@ -217,6 +332,7 @@ public class Pos_system extends javax.swing.JFrame {
         jPanel2.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 70, -1, -1));
 
         subTotalBox.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        subTotalBox.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
         jPanel2.add(subTotalBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(102, 36, 130, -1));
 
         jLabel8.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
@@ -224,6 +340,7 @@ public class Pos_system extends javax.swing.JFrame {
         jPanel2.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 140, -1, -1));
 
         payBox.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        payBox.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
         jPanel2.add(payBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 100, 130, -1));
 
         calculate.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
@@ -274,6 +391,18 @@ public class Pos_system extends javax.swing.JFrame {
         });
         getContentPane().add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(970, 650, 90, 40));
 
+        jTableAllItems.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane3.setViewportView(jTableAllItems);
+
+        getContentPane().add(jScrollPane3, new org.netbeans.lib.awtextra.AbsoluteConstraints(1190, 10, 570, 690));
+
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
@@ -289,77 +418,24 @@ public class Pos_system extends javax.swing.JFrame {
     private void productCodeBoxKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_productCodeBoxKeyPressed
         
         if(evt.getKeyCode() == KeyEvent.VK_ENTER){
-            String pCode = productCodeBox.getText();
             
-            try {
-                Class.forName("com.mysql.jdbc.Driver");
-                con = (Connection) DriverManager.getConnection("jdbc:mysql://localhost:3306/test1","root","");
-                pst = (PreparedStatement) con.prepareStatement("select * from parts where part_no = ?");
-                
-                pst.setString(1, pCode);
-                
-                rs = pst.executeQuery();
-                
-                //if product id not available
-                if(rs.next() == false){
-                    JOptionPane.showMessageDialog(this, "product code not found");
-                }else{
-                    String pname = rs.getString("description");
-                    String price = rs.getString("price");
-                    
-                    productNameBox.setText(pname.trim());
-                    priceBox.setText(price.trim());
-                }
-                
-                        } catch (ClassNotFoundException ex) {
-                Logger.getLogger(Pos_system.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (SQLException ex) {
-                Logger.getLogger(Pos_system.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            selectItem();
+            
         }
-        
     }//GEN-LAST:event_productCodeBoxKeyPressed
 
     private void qtyBoxStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_qtyBoxStateChanged
-        
-        int qty = Integer.parseInt(qtyBox.getValue().toString());
-        int price = Integer.parseInt(priceBox.getText());
-        
-        int total = qty * price;
-        
-        TotalBox.setText(String.valueOf(total));
+
+        calculateTotalOfItem();
         
     }//GEN-LAST:event_qtyBoxStateChanged
 
     private void addBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addBtnActionPerformed
-        
-        DefaultTableModel model = new DefaultTableModel();
-        
-        model = (DefaultTableModel)jTable.getModel();
-        
-        model. addRow(new Object[]
-        {
-            productCodeBox.getText(),
-            productNameBox.getText(),
-            qtyBox.getValue().toString(),
-            priceBox.getText(),
-            TotalBox.getText(),
-        } 
-                );
-        
-        int sum =  0 ;
-        
-        for (int i = 0; i<jTable.getRowCount(); ++i){
-            sum = sum + Integer.parseInt(jTable.getValueAt(i, 4).toString());
+        //pnli quantity has value go to next step
+        int Qty = Integer.parseInt(qtyBox.getValue().toString());
+        if(Qty>=1){
+        itemAddToTable();
         }
-        
-        subTotalBox.setText(Integer.toString(sum));
-        
-            productCodeBox.setText("");
-            productNameBox.setText("");
-            qtyBox.setValue(0);
-            priceBox.setText("");
-            TotalBox.setText("");
             
     }//GEN-LAST:event_addBtnActionPerformed
 
@@ -368,19 +444,31 @@ public class Pos_system extends javax.swing.JFrame {
     }//GEN-LAST:event_TotalBoxActionPerformed
 
     private void calculateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_calculateActionPerformed
-       
-        balance();
+        total = Integer.parseInt(subTotalBox.getText());
+        int pay = Integer.parseInt(payBox.getText());
+        
+        if(pay>=total){
+        balance(pay,total);
         bill();
+        }
+        else{
+            JOptionPane.showMessageDialog(rootPane, "Payment Not Enough");
+        }
         
     }//GEN-LAST:event_calculateActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        //printing bill
         try {
             billArea.print();
         } catch (PrinterException ex) {
             Logger.getLogger(Pos_system.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void clearBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearBtnActionPerformed
+        clear();
+    }//GEN-LAST:event_clearBtnActionPerformed
 
     /**
      * @param args the command line arguments
@@ -423,6 +511,7 @@ public class Pos_system extends javax.swing.JFrame {
     private javax.swing.JTextField balanceBox;
     private javax.swing.JTextArea billArea;
     private javax.swing.JButton calculate;
+    private javax.swing.JButton clearBtn;
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
@@ -436,7 +525,9 @@ public class Pos_system extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JTable jTable;
+    private javax.swing.JTable jTableAllItems;
     private javax.swing.JTextField payBox;
     private javax.swing.JTextField priceBox;
     private javax.swing.JTextField productCodeBox;
